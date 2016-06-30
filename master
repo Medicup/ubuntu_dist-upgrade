@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 #This script allows for dist-upgrade - auto-remove
 #Author: Stephen J Kennedy
 #version 1.0
@@ -13,29 +13,46 @@ LOG="${LOGPATH}/log/${DATE}-${PID}-log"
 TEMP="${LOGPATH}/.temp"
 MAIL=/usr/bin/mail
 TO="medicup@gmail.com"
-UPDATE="upgrade dist-upgrade auto-remove" #options for autoUpdate do statement
+UPDATE="update upgrade dist-upgrade autoremove" #options for autoUpdate do statement
 
 #mail Function uses mail to distribute results of autoUpdate
 mailOutput(){
-if [ $? -ne 0 ]
-   then
-      echo "mail error"
-      $MAIL -s "Error with ${HOSTNAME} update: check ${UPDATE}." $TO < $LOG
-   else
-      echo "Success!"
-      $MAIL -s ${DATE}-${HOSTNAME}  $TO < $LOG
-fi
+case $? in
+   0)
+        echo "Success!"
+        $MAIL -s ${DATE}-${HOSTNAME}  $TO < $LOG
+      ;;
+   1)
+        echo "mail error"
+        $MAIL -s "Error with ${HOSTNAME} update: check ${UPDATE}." $TO < $LOG
+      ;;
+   2)
+        echo "Reboot needed"
+        $MAIL -s "Reboot required for ${HOSTNAME}: shutdown pending." $TO < $LOG
+        shutdown -r now
+        kill PID
+      ;;
+esac
 }
 
-#Auto-update that includes dist-upgrade 
+
+#Auto-update that includes dist-upgrade
 autoUpdate (){
 echo "Starting update for $HOSTNAME at $TIME on ${DATE}." > $LOG
-sudo apt-get update
-
 for UPDATE in $UPDATE
 do
-  apt-get --assume-yes $UPDATE >> $LOG ||  return 1
-  echo "apt-get ${UPDATE} successful!" >> $LOG
+  case "$UPDATE" in
+  [update]|[upgrade]|[dist-upgrade])
+        apt-get $UPDATE --assume-yes >> $LOG || return 1
+        ;;
+  autoremove)
+        apt-get $UPDATE >> $LOG
+        if [ -f /var/run/reboot-required ]
+           then
+                echo "Reboot required" >> $LOG && return 2
+        fi
+        ;;
+esac
 done
 }
 
