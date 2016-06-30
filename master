@@ -1,9 +1,10 @@
 #!/bin/bash -x
 #This script allows for dist-upgrade - auto-remove
 #Author: Stephen J Kennedy
-#version 1.1
+#version 1.0
+#DEBUG used with -x (reports shell name, line number, and associated function)
+PS4='+ $BASH_SOURCE : $LINENO : ${FUNCNAME[0]} ()'
 
-THISHOST=$(hostname -f)
 DATE=$(date +"%F")
 TIME=$(date +"%H:%M:%S")
 LOGPATH="/bin/custom"
@@ -22,13 +23,11 @@ if [ $? -ne 0 ]
       $MAIL -s "Error with ${HOSTNAME} update: check ${UPDATE}." $TO < $LOG
    else
       echo "Success!"
-      $MAIL -s ${DATE}-${THISHOST}  $TO < $LOG
+      $MAIL -s ${DATE}-${HOSTNAME}  $TO < $LOG
 fi
 }
 
-#Auto-update and upgrade process. Checks for need to dist-upgrade and
-#exits with return 3 if dist-upgrade needed.
-
+#Auto-update that includes dist-upgrade 
 autoUpdate (){
 echo "Starting update for $HOSTNAME at $TIME on ${DATE}." > $LOG
 sudo apt-get update
