@@ -29,7 +29,7 @@ mailOutput(){
       2)
          echo "Reboot needed"
          $MAIL -s "Reboot required for ${HOSTNAME}: shutdown pending." $TO < $LOG
-         autoremove
+         apt-get autoremove
          shutdown -r now
          ;;
    esac
