@@ -1,2 +1,2 @@
-# ubuntu_dist-upgrade
+# bash ubuntu_dist-upgrade 
 Bash Script to automate dist-upgrade
